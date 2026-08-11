@@ -12,6 +12,7 @@ html<!DOCTYPE html>
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 min-h-screen font-sans">
+
     <!-- 1枚目：表紙画面 -->
     <div id="coverScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900 p-4 transition-all duration-300">
         <div class="w-full max-w-md h-[550px] leather-cover rounded-2xl relative flex flex-col justify-between p-8 border-2 border-emerald-900 shadow-2xl overflow-hidden">
@@ -32,6 +33,7 @@ html<!DOCTYPE html>
             </div>
         </div>
     </div>
+
     <!-- 2枚目：週案スケジュール画面 -->
     <div id="mainContent" class="hidden opacity-0 transition-opacity duration-300">
         <header class="bg-emerald-700 text-white p-4 shadow-md sticky top-0 z-40">
@@ -55,11 +57,11 @@ html<!DOCTYPE html>
                         <thead>
                             <tr class="bg-emerald-50 border-b-2 border-emerald-200">
                                 <th class="p-2.5 text-center w-16 text-emerald-700 font-bold">校時</th>
-                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-red-600"><span id="date-mon">月(--/--)</span></th>
-                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-emerald-800"><span id="date-tue">火(--/--)</span></th>
-                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-emerald-800"><span id="date-wed">水(--/--)</span></th>
-                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-emerald-800"><span id="date-thu">木(--/--)</span></th>
-                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-blue-600"><span id="date-fri">金(--/--)</span></th>
+                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-red-600" id="date-mon">月(--/--)</th>
+                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-emerald-800" id="date-tue">火(--/--)</th>
+                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-emerald-800" id="date-wed">水(--/--)</th>
+                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-emerald-800" id="date-thu">木(--/--)</th>
+                                <th class="p-2.5 border-l border-emerald-100 text-center font-bold text-blue-600" id="date-fri">金(--/--)</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -69,58 +71,90 @@ html<!DOCTYPE html>
             <div class="space-y-6">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100">
                     <h2 class="text-lg font-bold text-emerald-800 mb-3 flex items-center gap-2">✅ 今週のタスク（ToDo）</h2>
-                    <textarea id="todo-list" class="w-full h-44 p-3 text-sm border border-stone-200 rounded-lg resize-none bg-stone-50/30" placeholder="・宿題の回収状況チェック..." oninput="handleInput('todo-list', this.value)"></textarea>
+                    <textarea id="todo-list" class="w-full h-44 p-3 text-sm border border-stone-200 rounded-lg resize-none bg-stone-50/30 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="・宿紙の回収状況チェック..." oninput="handleInput('todo-list', this.value)"></textarea>
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100">
                     <h2 class="text-lg font-bold text-emerald-800 mb-3 flex items-center gap-2">📝 自由連絡メモ</h2>
-                    <textarea id="free-memo" class="w-full h-44 p-3 text-sm border border-stone-200 rounded-lg resize-none bg-stone-50/30" placeholder="連絡事項やメモ..." oninput="handleInput('free-memo', this.value)"></textarea>
+                    <textarea id="free-memo" class="w-full h-44 p-3 text-sm border border-stone-200 rounded-lg resize-none bg-stone-50/30 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="連絡事項やメモ..." oninput="handleInput('free-memo', this.value)"></textarea>
                 </div>
             </div>
         </main>
     </div>
+
     <script>
         let currentMonday = new Date();
-        const dayOfWeek = currentMonday.getDay();
-        const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        currentMonday.setDate(currentMonday.getDate() + distanceToMonday);
+        
+        // 今週の月曜日を計算する関数
+        function initMonday() {
+            const dayOfWeek = currentMonday.getDay();
+            const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            currentMonday.setDate(currentMonday.getDate() + distanceToMonday);
+        }
+
         window.onload = function() {
+            initMonday();
             const today = new Date();
-            document.getElementById('coverDate').innerText = `${today.getFullYear()}年 ${today.getMonth() + 1}月 ${today.getDate()}日`;
+            document.getElementById('coverDate').innerText = today.getFullYear() + "年 " + (today.getMonth() + 1) + "月 " + today.getDate() + "日";
+            
             const savedDateStr = localStorage.getItem('last_saved_monday');
             if (savedDateStr) { currentMonday = new Date(savedDateStr); }
-            buildTable(); updateCalendarAndData();
+            
+            buildTable(); 
+            updateCalendarAndData();
             if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
         };
+
         function buildTable() {
-            const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+            const tbody = document.getElementById('tableBody'); 
+            tbody.innerHTML = '';
             const daysKey = ['mon', 'tue', 'wed', 'thu', 'fri'];
             for (let p = 1; p <= 6; p++) {
-                let tr = document.createElement('tr'); tr.className = 'border-b hover:bg-stone-50/50';
-                let tdLabel = document.createElement('td'); tdLabel.className = 'p-3 font-bold text-center bg-stone-50 text-stone-500 border-r';
-                tdLabel.innerText = `${p}限`; tr.appendChild(tdLabel);
+                let tr = document.createElement('tr'); 
+                tr.className = 'border-b hover:bg-stone-50/50';
+                let tdLabel = document.createElement('td'); 
+                tdLabel.className = 'p-3 font-bold text-center bg-stone-50 text-stone-500 border-r';
+                tdLabel.innerText = p + "限"; 
+                tr.appendChild(tdLabel);
+                
                 daysKey.forEach(day => {
-                    let td = document.createElement('td'); td.className = 'p-1.5 border-r';
-                    let ta = document.createElement('textarea'); ta.id = `plan-${day}-${p}`;
+                    let td = document.createElement('td'); 
+                    td.className = 'p-1.5 border-r';
+                    let ta = document.createElement('textarea'); 
+                    ta.id = "plan-" + day + "-" + p;
                     ta.className = 'w-full h-20 p-2 text-xs border rounded-lg resize-none bg-stone-50/30 focus:outline-none focus:ring-2 focus:ring-emerald-500';
-                    ta.placeholder = '授業内容...'; ta.oninput = function() { handleInput(ta.id, ta.value) };
-                    td.appendChild(ta); tr.appendChild(td);
+                    ta.placeholder = '授業内容...'; 
+                    ta.oninput = function() { handleInput(ta.id, ta.value) };
+                    td.appendChild(ta); 
+                    tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
             }
         }
-        function openNotebook() { document.getElementById('coverScreen').classList.add('opacity-0', 'pointer-events-none'); const main = document.getElementById('mainContent'); main.classList.remove('hidden'); setTimeout(() => main.classList.add('opacity-100'), 50); }
-        function closeNotebook() { document.getElementById('mainContent').classList.remove('opacity-100'); document.getElementById('mainContent').classList.add('hidden'); document.getElementById('coverScreen').classList.remove('opacity-0', 'pointer-events-none'); }
-        function updateCalendarAndData() {
-            const year = currentMonday.getFullYear(); const month = currentMonday.getMonth() + 1; const date = currentMonday.getDate();
-            document.getElementById('weekLabel').innerText = `${year}年${month}月${date}日の週`;
-            localStorage.setItem('last_saved_monday', currentMonday.toDateString());
-            const daysKey = ['mon', 'tue', 'wed', 'thu', 'fri']; const dayNames = ['月', '火', '水', '木', '金'];
-            daysKey.forEach((day, index) => {
-                const targetDay = new Date(currentMonday); targetDay.setDate(currentMonday.getDate() + index);
-                document.getElementById(`date-${day}`).innerText = `${dayNames[index]}(${targetDay.getMonth() + 1}/${targetDay.getDate()})`;
-            });
-            const weekKey = `week_${year}_${month}_${date}`;
-            for (let p = 1; p <= 6; p++) { daysKey.forEach(day => { const id = `plan-${day}-${p}`; document.getElementById(id).value = localStorage.getItem(`${weekKey}_${id}`) || ""; }); }
-            document.getElementById('todo-list').value = localStorage.getItem(`${weekKey}_todo-list`) || "";
-            document.getElementById('free-memo').value = localStorage.getItem(`${weekKey}_free-memo`) || "";
+
+        document.write = function() {}; // 安全対策
+
+        function openNotebook() { 
+            document.getElementById('coverScreen').classList.add('opacity-0', 'pointer-events-none'); 
+            const main = document.getElementById('mainContent'); 
+            main.classList.remove('hidden'); 
+            setTimeout(function() { main.classList.add('opacity-100'); }, 50); 
         }
+        function closeNotebook() { 
+            document.getElementById('mainContent').classList.remove('opacity-100'); 
+            document.getElementById('mainContent').classList.add('hidden'); 
+            document.getElementById('coverScreen').classList.remove('opacity-0', 'pointer-events-none'); 
+        }
+
+        function updateCalendarAndData() {
+            const year = currentMonday.getFullYear(); 
+            const month = currentMonday.getMonth() + 1; 
+            const date = currentMonday.getDate();
+            document.getElementById('weekLabel').innerText = year + "年" + month + "月" + date + "日の週";
+            localStorage.setItem('last_saved_monday', currentMonday.toDateString());
+            
+            const daysKey = ['mon', 'tue', 'wed', 'thu', 'fri']; 
+            const dayNames = ['月', '火', '水', '木', '金'];
+            
+            daysKey.forEach(function(day, index) {
+                const targetDay = new Date(currentMonday); 
+                targetDay.setDate(currentMonday.getDate() + index);
